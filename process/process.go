@@ -76,7 +76,7 @@ func (m *ProcessMonitor) update() {
 		}
 	}
 	updatedAt := time.Now()
-	m.calculateUsage()
+	m.calculateUsage(updatedAt)
 	m.lastUpdate = updatedAt
 	// for next update
 	l := make(map[string]*LinuxProcess)
@@ -87,7 +87,7 @@ func (m *ProcessMonitor) update() {
 	m.updateCache()
 }
 
-func (m *ProcessMonitor) calculateUsage() {
+func (m *ProcessMonitor) calculateUsage(updateTime time.Time) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 	m.top = make([]*ProcessMetric, 0)
@@ -95,7 +95,7 @@ func (m *ProcessMonitor) calculateUsage() {
 	for currentPID, currentProc := range m.current {
 		if lastProc, ok := m.last[currentPID]; ok {
 			deltaTime := currentProc.CPUTime() - lastProc.CPUTime()
-			duration := time.Since(m.lastUpdate).Nanoseconds() / 1e9
+			duration := float64(updateTime.Sub(m.lastUpdate).Nanoseconds()) / float64(1e9)
 			usage := 100 * float64(deltaTime) / float64(duration)
 			res := currentProc.ResidentMemory()
 			memUsage := 100 * float64(res) / float64(totalMem)
