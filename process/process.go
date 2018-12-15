@@ -69,6 +69,8 @@ func (m *ProcessMonitor) update() {
 		log.Println(err)
 		return
 	}
+	//clean data
+	m.current = make(map[string]*LinuxProcess)
 	for _, f := range files {
 		_, err := strconv.ParseInt(f.Name(), 10, 64)
 		if f.IsDir() && err == nil {
@@ -78,12 +80,7 @@ func (m *ProcessMonitor) update() {
 	updatedAt := time.Now()
 	m.calculateUsage(updatedAt)
 	m.lastUpdate = updatedAt
-	// for next update
-	l := make(map[string]*LinuxProcess)
-	for k, v := range m.current {
-		l[k] = v
-	}
-	m.last = l
+	m.last = m.current
 	m.updateCache()
 }
 
